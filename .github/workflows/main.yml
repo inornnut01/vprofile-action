@@ -12,17 +12,17 @@ jobs:
       - name: Code checkout
         uses: actions/checkout@v4
 
-      - name: Maven test
-        run: mvn test
-
-      - name: Checkstyle
-        run: mvn checkstyle:checkstyle
-
       - name: Set Java 11
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
           java-version: "11"
+
+      - name: Maven test
+        run: mvn test
+
+      - name: Checkstyle
+        run: mvn checkstyle:checkstyle
 
       - name: Setup SonarQube
         uses: warchant/setup-sonar-scanner@v7
@@ -37,7 +37,7 @@ jobs:
           -Dsonar.junit.reportsPath=target/surefire-reports/
           -Dsonar.jacoco.reportsPath=target/jacoco.exec
           -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-          -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/
+          -Dsonar.java.binaries=target/classes/
 
       - name: SonarQube Quality Gate check
         id: sonarqube-quality-gate-check
@@ -47,3 +47,16 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_URL }} #OPTIONAL
+
+  BUILD_AND_PUBLISH:
+  needs: Testing
+  runs-on: ubuntu-latest
+  steps:
+    - name: Code checkout
+      uses: actions/checkout@v4
+
+    - name: Maven build
+      run: mvn package
+
+    - name: Maven deploy
+      run: mvn deploy
